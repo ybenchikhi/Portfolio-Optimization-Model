@@ -1,0 +1,37 @@
+from scipy.optimize import minimize
+import numpy as np
+
+# Define the asset returns, covariance matrix, and risk-free rate
+asset_returns = np.array([0.1, 0.05, 0.03]) # assuming low expected returns for low-risk assets
+cov_matrix = np.array([[0.001, 0.0005, 0.0001], [0.0005, 0.002, 0.0003], [0.0001, 0.0003, 0.0004]]) # assuming low volatility and covariance for low-risk assets
+risk_free_rate = 0.02
+
+# Define the optimization function
+def portfolio_optimization(weights, returns, cov_matrix, risk_free_rate):
+    portfolio_return = np.dot(weights, returns)
+    portfolio_volatility = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
+    sharpe_ratio = (portfolio_return - risk_free_rate) / portfolio_volatility
+    return -1 * sharpe_ratio
+
+# Define the constraints
+constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1}, 
+               {'type': 'ineq', 'fun': lambda x: x})
+
+# Define the bounds
+bounds = [(0, 1) for i in range(len(asset_returns))]
+
+# Initialize the weights
+init_weights = [1/len(asset_returns) for i in range(len(asset_returns))]
+
+# Optimize the portfolio
+optimized_weights = minimize(portfolio_optimization, init_weights, args=(asset_returns, cov_matrix, risk_free_rate), constraints=constraints, bounds=bounds)
+
+# initialize the investment amount
+investment_amount = 100000
+
+# calculate the optimized portfolio return and volatility
+optimized_portfolio_return = investment_amount * optimized_weights.fun
+optimized_portfolio_volatility = investment_amount * np.sqrt(np.dot(optimized_weights.x.T, np.dot(cov_matrix, optimized_weights.x)))
+
+print("Optimized portfolio return: ", optimized_portfolio_return)
+print("Optimized portfolio volatility: ", optimized_portfolio_volatility)
